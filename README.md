@@ -1,6 +1,6 @@
 This extension is not interested in your personal data nor tracking your activity nor invading by any means your privacy. It just does what it says.
 
-I realized there was not a fast way to kill all cookies for the current site from Google Chrome when I first build the application at the beginning of 2010. Incredibly enough six years later I found people still using it so I decided to open source it and make it a little bit more user friendly.<br />
+I realized there was not a fast way to kill all cookies for the current site from Google Chrome when I first built this extension at the beginning of 2010. Incredibly enough six years later I found people still using it so I decided to open source it and make it a little bit more user friendly.<br />
 
 As a developer I need this feature to rapidly troubleshoot sites I am working on. The name "Remove Cookies for Site" is inspired in a Firefox extension I used when my main development browser was Firefox.
 
