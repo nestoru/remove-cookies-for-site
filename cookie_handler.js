@@ -1,59 +1,45 @@
 this.cookies_ = {};
 
-function addCookie(cookie) {
-   	var key = cookie.name+cookie.domain+cookie.hostOnly+cookie.path+cookie.secure+cookie.httpOnly+cookie.session+cookie.storeId;
-	console.log(key);
-  	this.cookies_[key] = cookie;
-}
+const addCookie = cookie => {
+  const key = cookie.name + cookie.domain + cookie.hostOnly + cookie.path + cookie.secure + cookie.httpOnly + cookie.session + cookie.storeId;
+  this.cookies_[key] = cookie;
+};
 
-function listener(info) {
-	var cookie = info.cookie;
-	addCookie(cookie);
-}
+jQuery(document).ready(() => {
+  if (!chrome.cookies) {
+    chrome.cookies = chrome.experimental.cookies;
+  }
 
-/*
-function onload() {
-	var foo = true;
-}
-*/
-
-jQuery(document).ready(function(){
-  	console.log("From cookie_handler.js:");
-    if (!chrome.cookies) {
-	  chrome.cookies = chrome.experimental.cookies;
-	}
-  	chrome.browserAction.onClicked.addListener(function(tab) {
-		chrome.cookies.getAll({}, function(cookies) {
-			chrome.cookies.onChanged.addListener(listener);
-			for( var i in cookies ) {
-				addCookie(cookies[i]);
-			}
-		});
-		setTimeout(runProcess(tab), 250);
-		//runProcess(tab);
-
-
-	});
+  const listener = info => addCookie(info.cookie);
+  chrome.browserAction.onClicked.addListener(tab => {
+    chrome.cookies.getAll(
+      {},
+      cookies => {
+        chrome.cookies.onChanged.addListener(listener);
+        cookies.forEach(addCookie);
+      },
+    );
+    setTimeout(() => runProcess(tab), 250);
+  });
 });
 
+/** @param {string} url */
+const extractDomain = url => url.match(/:\/\/(.[^/:]+)/)[1];
+
 function runProcess(tab) {
-	var domain = extractDomain(tab.url);
-	for (var i in this.cookies_) {
-	   	var cookie = this.cookies_[i];
-		if( ("."+domain).indexOf(cookie.domain) != -1 ) {
-			  url = "http" + (cookie.secure ? "s" : "") + "://" + cookie.domain + cookie.path;
-			  chrome.cookies.remove({"url": url, "name": cookie.name});
-		}
+  const domain = extractDomain(tab.url);
+  for (const i in this.cookies_) {
+    const cookie = this.cookies_[i];
+    if ((`.${domain}`).includes(cookie.domain)) {
+      const url = `http${cookie.secure ? "s" : ""}://${cookie.domain}${cookie.path}`;
+      chrome.cookies.remove({"url": url, "name": cookie.name});
+    }
   }
-  setTimeout(function(){
-    chrome.browserAction.setBadgeText({'text':'done'});
-    setTimeout(function(){
-      chrome.browserAction.setBadgeText({'text':''});
-    }, 1000);
-  }, 0);
-
-}
-
-function extractDomain(url) {
-	return url.match(/:\/\/(.[^/:]+)/)[1];
+  setTimeout(
+    () => {
+      chrome.browserAction.setBadgeText({'text': 'done'});
+      setTimeout(() => chrome.browserAction.setBadgeText({'text': ''}), 1000);
+    },
+    0,
+  );
 }
