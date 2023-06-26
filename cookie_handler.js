@@ -1,59 +1,51 @@
-this.cookies_ = {};
-
-function addCookie(cookie) {
-   	var key = cookie.name+cookie.domain+cookie.hostOnly+cookie.path+cookie.secure+cookie.httpOnly+cookie.session+cookie.storeId;
-	console.log(key);
-  	this.cookies_[key] = cookie;
-}
-
-function listener(info) {
-	var cookie = info.cookie;
-	addCookie(cookie);
-}
-
-/*
-function onload() {
-	var foo = true;
-}
-*/
-
-jQuery(document).ready(function(){
-  	console.log("From cookie_handler.js:");
-    if (!chrome.cookies) {
-	  chrome.cookies = chrome.experimental.cookies;
-	}
-  	chrome.browserAction.onClicked.addListener(function(tab) {
-		chrome.cookies.getAll({}, function(cookies) {
-			chrome.cookies.onChanged.addListener(listener);
-			for( var i in cookies ) {
-				addCookie(cookies[i]);
-			}
-		});
-		setTimeout(runProcess(tab), 250);
-		//runProcess(tab);
-
-
-	});
+chrome.action.onClicked.addListener(async function () {
+  const currentTab = await getCurrentTab();
+  if (currentTab) {
+    const cookies = await getCookies(currentTab.url);
+    for (const cookie of cookies) {
+      await removeCookie(cookie);
+    }
+    chrome.action.setBadgeText({ text: "Done!" });
+    setTimeout(function () {
+      chrome.action.setBadgeText({ text: "" });
+    }, 3000);
+  } else {
+    console.error("Unable to retrieve the current tab.");
+  }
 });
 
-function runProcess(tab) {
-	var domain = extractDomain(tab.url);
-	for (var i in this.cookies_) {
-	   	var cookie = this.cookies_[i];
-		if( ("."+domain).indexOf(cookie.domain) != -1 ) {
-			  url = "http" + (cookie.secure ? "s" : "") + "://" + cookie.domain + cookie.path;
-			  chrome.cookies.remove({"url": url, "name": cookie.name});
-		}
-  }
-  setTimeout(function(){
-    chrome.browserAction.setBadgeText({'text':'done'});
-    setTimeout(function(){
-      chrome.browserAction.setBadgeText({'text':''});
-    }, 1000);
-  }, 0);
-
+async function getCurrentTab() {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (tabs) {
+      resolve(tabs[0]);
+    });
+  });
 }
 
-function extractDomain(url) {
-	return url.match(/:\/\/(.[^/:]+)/)[1];
+async function getCookies(url) {
+  return new Promise((resolve) => {
+    chrome.cookies.getAll({ url }, function (cookies) {
+      resolve(cookies);
+    });
+  });
 }
+
+function removeCookie(cookie) {
+  return new Promise((resolve) => {
+    chrome.cookies.remove(
+      { url: getCookieUrl(cookie), name: cookie.name },
+      function (details) {
+        resolve(details);
+      }
+    );
+  });
+}
+
+function getCookieUrl(cookie) {
+  return (
+    (cookie.secure ? "https://" : "http://") +
+    cookie.domain +
+    cookie.path
+  );
+}
+
