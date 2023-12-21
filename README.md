@@ -1,3 +1,5 @@
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=58F9TDDRBND4L)
+
 This extension is not interested in your personal data nor tracking your activity nor invading by any means your privacy. It just does what it says.
 
 I realized there was not a fast way to kill all cookies for the current site from Google Chrome when I first built this extension at the beginning of 2010. Incredibly enough six years later I found people still using it so I decided to open source it and make it a little bit more user friendly.<br />
